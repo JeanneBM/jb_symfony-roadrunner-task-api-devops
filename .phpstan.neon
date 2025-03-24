@@ -5,5 +5,5 @@ parameters:
         - tests
     excludePaths:
         - vendor
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
+    # checkMissingIterableValueType: false
+    # checkGenericClassInNonGenericObjectType: false
