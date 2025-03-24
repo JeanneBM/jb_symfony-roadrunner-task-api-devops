@@ -53,10 +53,9 @@ services:
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-app}
-      # You should definitely change the password in production
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
-      POSTGRES_USER: ${POSTGRES_USER:-app}
+      - POSTGRES_USER=${POSTGRES_USER:-task_manager_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-task_manager}
     volumes:
       - database_data:/var/lib/postgresql/data:rw
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
@@ -69,13 +68,13 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /path/to/pgdata
+
   redisdata:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /path/to/redisdata
+
 
 ###> doctrine/doctrine-bundle ###
   database_data:
