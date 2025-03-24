@@ -22,8 +22,7 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install RoadRunner
-RUN curl -sL "https://github.com/roadrunner-server/roadrunner/releases/latest/download/roadrunner-linux-amd64" \
-    -o /usr/local/bin/rr \
+RUN curl -L https://github.com/roadrunner-server/roadrunner/releases/download/v2023.3.8/roadrunner-2023.3.8-linux-amd64 -o /usr/local/bin/rr \
     && chmod +x /usr/local/bin/rr
 
 # Copy application files
