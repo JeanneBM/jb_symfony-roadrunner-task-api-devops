@@ -5,9 +5,11 @@ services:
     build: .
     container_name: task_manager_app
     environment:
-      - DATABASE_URL=postgresql://task_manager_user:${DB_PASSWORD}@db:5432/task_manager
-      - APP_ENV=prod
-      - REDIS_HOST=redis
+      - APP_ENV=${APP_ENV}
+      - APP_SECRET=${APP_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+      - MESSENGER_TRANSPORT_DSN=${MESSENGER_TRANSPORT_DSN}
+      - REDIS_DSN=${REDIS_DSN}
     ports:
       - "8080:8080"
     depends_on:
@@ -20,9 +22,9 @@ services:
     image: postgres:15.6
     container_name: task_manager_db
     environment:
-      POSTGRES_USER: task_manager_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: task_manager
+      POSTGRES_USER: ${POSTGRES_USER-task_manager_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-password}
+      POSTGRES_DB: ${POSTGRES_DB-task_manager}
     ports:
       - "5432:5432"
     volumes:
