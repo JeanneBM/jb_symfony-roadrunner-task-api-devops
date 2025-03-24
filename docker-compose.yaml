@@ -22,15 +22,15 @@ services:
     image: postgres:15.6
     container_name: task_manager_db
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-task_manager_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRES_DB=${POSTGRES_DB:-task_manager}
+      POSTGRES_USER: ${POSTGRES_USER-task_manager_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-password}
+      POSTGRES_DB: ${POSTGRES_DB-task_manager}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-task_manager_user}"]
+      test: ["CMD-SHELL", "pg_isready -U task_manager_user"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -49,6 +49,33 @@ services:
       timeout: 5s
       retries: 5
 
+###> doctrine/doctrine-bundle ###
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-task_manager_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-task_manager}
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+###< doctrine/doctrine-bundle ###
+
 volumes:
   pgdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+
   redisdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+
+
+###> doctrine/doctrine-bundle ###
+  database_data:
+###< doctrine/doctrine-bundle ###
