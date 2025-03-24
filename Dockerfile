@@ -4,7 +4,7 @@ FROM php:8.1-cli AS base
 # Set the working directory inside the container
 WORKDIR /app
 
-# Install system dependencies and PHP extensions in a single layer
+# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
     unzip \
     git \
@@ -23,42 +23,33 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer from official image
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install RoadRunner
 RUN curl -sSL https://github.com/roadrunner-server/roadrunner/releases/download/v2023.3.8/roadrunner-2023.3.8-linux-amd64 -o /usr/local/bin/rr \
     && chmod +x /usr/local/bin/rr
 
-# Copy only composer files first to leverage Docker cache
+# First copy only composer files to leverage Docker cache
 COPY composer.json composer.lock ./
 
-# Debugging steps
-RUN echo "Checking PHP extensions:" && php -m \
-    && echo "Composer version:" && composer --version \
-    && echo "PHP configuration:" && php --ini
+# Debug PHP environment
+RUN php -v && \
+    composer --version && \
+    php -m && \
+    php --ini
 
-# Install dependencies with retry mechanism
-RUN composer clear-cache \
-    && (composer install \
-        --no-dev \
-        --optimize-autoloader \
-        --no-interaction \
-        --no-progress \
-        --timeout=300 \
-        -vvv || (echo "Composer install failed, retrying..." && composer install \
-        --no-dev \
-        --optimize-autoloader \
-        --no-interaction \
-        --no-progress \
-        --timeout=600 \
-        -vvv))
+# Install dependencies (simplified)
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --no-progress \
+    -vvv
 
-# Copy the rest of the application files
+# Copy the rest of application files
 COPY . .
 
-# Expose port for RoadRunner
 EXPOSE 8080
 
-# Start RoadRunner server
 CMD ["/usr/local/bin/rr", "serve"]
