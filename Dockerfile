@@ -39,12 +39,13 @@ RUN php -v && \
     php -m && \
     php --ini
 
-# Install dependencies (simplified)
+# Install dependencies with --ignore-platform-reqs flag
 RUN composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
     --no-progress \
+    --ignore-platform-reqs \
     -vvv
 
 # Copy the rest of application files
