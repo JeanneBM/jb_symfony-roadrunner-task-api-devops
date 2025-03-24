@@ -34,6 +34,9 @@ RUN composer --version
 # Debugging step: Check if required PHP extensions are enabled
 RUN php -m
 
+# Debug Composer diagnosis
+RUN composer diagnose
+
 # Clear Composer cache and install dependencies
 RUN composer clear-cache && \
     composer install \
@@ -42,7 +45,7 @@ RUN composer clear-cache && \
     --no-interaction \
     --no-progress \
     --timeout=300 \
-    -v
+    -vvv
 
 # Expose port for RoadRunner
 EXPOSE 8080
