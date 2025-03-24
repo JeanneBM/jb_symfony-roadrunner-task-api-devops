@@ -9,7 +9,7 @@
         "php": ">=8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "baldinof/roadrunner-bundle": "^2.0",
+        "baldinof/roadrunner-bundle": "^2.3",
         "doctrine/doctrine-bundle": "^2.10",
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.16",
