@@ -1,7 +1,7 @@
-# Base image with PHP 8.1 CLI
+# Use PHP 8.1 CLI as the base image
 FROM php:8.1-cli AS base
 
-# Set working directory
+# Set the working directory inside the container
 WORKDIR /app
 
 # Install system dependencies and PHP extensions in a single layer
@@ -25,15 +25,24 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN curl -L https://github.com/roadrunner-server/roadrunner/releases/download/v2023.3.8/roadrunner-2023.3.8-linux-amd64 -o /usr/local/bin/rr \
     && chmod +x /usr/local/bin/rr
 
-# Copy application files
+# Copy application files into the container
 COPY . .
 
-# Install PHP dependencies and optimize
-RUN composer install \
+# Debugging step: Verify Composer is installed correctly
+RUN composer --version
+
+# Debugging step: Check if required PHP extensions are enabled
+RUN php -m
+
+# Clear Composer cache and install dependencies
+RUN composer clear-cache && \
+    composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
-    --no-progress
+    --no-progress \
+    --timeout=300 \
+    -v
 
 # Expose port for RoadRunner
 EXPOSE 8080
