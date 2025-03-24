@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
         pdo \
         pdo_pgsql \
         curl \
+        zip \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apt-get clean \
@@ -26,30 +27,35 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install RoadRunner
-RUN curl -L https://github.com/roadrunner-server/roadrunner/releases/download/v2023.3.8/roadrunner-2023.3.8-linux-amd64 -o /usr/local/bin/rr \
+RUN curl -sSL https://github.com/roadrunner-server/roadrunner/releases/download/v2023.3.8/roadrunner-2023.3.8-linux-amd64 -o /usr/local/bin/rr \
     && chmod +x /usr/local/bin/rr
 
-# Copy application files into the container
+# Copy only composer files first to leverage Docker cache
+COPY composer.json composer.lock ./
+
+# Debugging steps
+RUN echo "Checking PHP extensions:" && php -m \
+    && echo "Composer version:" && composer --version \
+    && echo "PHP configuration:" && php --ini
+
+# Install dependencies with retry mechanism
+RUN composer clear-cache \
+    && (composer install \
+        --no-dev \
+        --optimize-autoloader \
+        --no-interaction \
+        --no-progress \
+        --timeout=300 \
+        -vvv || (echo "Composer install failed, retrying..." && composer install \
+        --no-dev \
+        --optimize-autoloader \
+        --no-interaction \
+        --no-progress \
+        --timeout=600 \
+        -vvv))
+
+# Copy the rest of the application files
 COPY . .
-
-# Debugging step: Verify Composer is installed correctly
-RUN composer --version
-
-# Debugging step: Check if required PHP extensions are enabled
-RUN php -m
-
-# Debug PHP configuration
-RUN php --ini
-
-# Clean Composer cache and install dependencies with high verbosity
-RUN composer clear-cache && \
-    composer install \
-    --no-dev \
-    --optimize-autoloader \
-    --no-interaction \
-    --no-progress \
-    --timeout=300 \
-    -vvv
 
 # Expose port for RoadRunner
 EXPOSE 8080
