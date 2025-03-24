@@ -10,9 +10,13 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpq-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libzip-dev \
     && docker-php-ext-install \
         pdo \
         pdo_pgsql \
+        curl \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apt-get clean \
@@ -34,12 +38,16 @@ RUN composer --version
 # Debugging step: Check if required PHP extensions are enabled
 RUN php -m
 
-# Debug Composer diagnosis
+# Debug PHP configuration
+RUN php --ini
+
+# Clean Composer cache and run diagnosis
+RUN composer clear-cache
+RUN composer self-update
 RUN composer diagnose
 
 # Clear Composer cache and install dependencies
-RUN composer clear-cache && \
-    composer install \
+RUN composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
