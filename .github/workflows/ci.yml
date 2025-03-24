@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
       
+      - name: Install dev dependencies for static analysis
+        run: composer install --dev --no-scripts --no-interaction
+        
       - name: Run static analysis
         run: composer stan
       
