@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: task_manager_app
+    environment:
+      - DATABASE_URL=postgresql://task_manager_user:${DB_PASSWORD}@db:5432/task_manager
+      - APP_ENV=prod
+      - REDIS_HOST=redis
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:15.6
+    container_name: task_manager_db
+    environment:
+      POSTGRES_USER: task_manager_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: task_manager
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U task_manager_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6.0.20
+    container_name: task_manager_redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /path/to/pgdata
+  redisdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /path/to/redisdata
