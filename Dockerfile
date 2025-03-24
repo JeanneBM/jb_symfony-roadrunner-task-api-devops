@@ -41,13 +41,9 @@ RUN php -m
 # Debug PHP configuration
 RUN php --ini
 
-# Clean Composer cache and run diagnosis
-RUN composer clear-cache
-RUN composer self-update
-RUN composer diagnose
-
-# Clear Composer cache and install dependencies
-RUN composer install \
+# Clean Composer cache and install dependencies with high verbosity
+RUN composer clear-cache && \
+    composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
