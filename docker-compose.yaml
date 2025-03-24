@@ -69,13 +69,12 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /path/to/pgdata
+
   redisdata:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /path/to/redisdata
 
 ###> doctrine/doctrine-bundle ###
   database_data:
