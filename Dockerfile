@@ -28,53 +28,43 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer (latest version)
+# Install Composer properly with PATH setup
+ENV PATH="/usr/bin:${PATH}"
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN composer --version
 
 # Install RoadRunner
 RUN curl -sSL https://github.com/roadrunner-server/roadrunner/releases/download/v2023.3.8/roadrunner-2023.3.8-linux-amd64 -o /usr/local/bin/rr \
     && chmod +x /usr/local/bin/rr
 
+# Verify basic commands work
+RUN which php && which composer && php -v && composer --version
+
 # First copy only composer files to leverage Docker cache
 COPY composer.json composer.lock ./
 
-# Debug environment
-RUN echo "=== PHP Version ===" && php -v && \
-    echo "\n=== Composer Version ===" && composer --version && \
-    echo "\n=== PHP Extensions ===" && php -m && \
-    echo "\n=== Disk Space ===" && df -h && \
-    echo "\n=== Memory Info ===" && free -m
-
-# Try installing dependencies with multiple fallbacks
+# Install dependencies with multiple fallbacks
 RUN { \
     composer clear-cache && \
-    composer install \
+    COMPOSER_MEMORY_LIMIT=-1 composer install \
         --no-dev \
         --optimize-autoloader \
         --no-interaction \
         --no-progress \
         --ignore-platform-reqs \
+        --prefer-dist \
         -vvv || \
     { \
-        echo "First attempt failed, trying with memory limit..." && \
+        echo "First attempt failed, trying without lock file..." && \
+        rm -f composer.lock && \
         COMPOSER_MEMORY_LIMIT=-1 composer install \
             --no-dev \
             --optimize-autoloader \
             --no-interaction \
             --no-progress \
             --ignore-platform-reqs \
-            -vvv || \
-        { \
-            echo "Second attempt failed, trying without lock file..." && \
-            composer install \
-                --no-dev \
-                --optimize-autoloader \
-                --no-interaction \
-                --no-progress \
-                --ignore-platform-reqs \
-                --prefer-dist \
-                -vvv; \
-        }; \
+            --prefer-dist \
+            -vvv; \
     }; \
 }
 
