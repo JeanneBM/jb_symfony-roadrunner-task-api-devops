@@ -15,40 +15,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      # Cache vendor directory to speed up dependency installation
-      - name: Cache Symfony vendor directory
-        uses: actions/cache@v3
-        with:
-          path: vendor
-          key: symfony-vendor-${{ hashFiles('composer.lock') }}
-          restore-keys: symfony-vendor-
-
-      # Cache Composer dependencies
-      - name: Cache Composer dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.composer/cache
-          key: composer-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.1
 
-      # Install dependencies (with dev for tests)
       - name: Install dependencies
-        run: composer install --optimize-autoloader
-
-      # Verify that Baldinof RoadRunner is installed correctly
-      - name: Check installed packages
-        run: composer show | grep baldinof || composer require baldinof/roadrunner-bundle
+        run: composer install --no-dev --optimize-autoloader
 
       - name: Run static analysis
         run: composer stan
 
       - name: Run tests
         run: composer test
+
 
   docker:
     runs-on: ubuntu-latest
