@@ -28,9 +28,9 @@ jobs:
         with:
           php-version: 8.1
 
-      # Install dependencies using cache
+      # Install dependencies (with dev for tests)
       - name: Install dependencies
-        run: composer install --no-dev --optimize-autoloader
+        run: composer install --optimize-autoloader
 
       - name: Run static analysis
         run: composer stan
@@ -58,3 +58,7 @@ jobs:
           docker build --cache-from=type=local,src=/tmp/.buildx-cache \
                        --cache-to=type=local,dest=/tmp/.buildx-cache \
                        -t task-api .
+
+      - name: Run containerized tests
+        run: |
+          docker run --rm task-api composer test
