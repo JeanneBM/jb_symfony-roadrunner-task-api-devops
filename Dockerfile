@@ -37,9 +37,6 @@ RUN composer --version
 RUN curl -sSL https://github.com/roadrunner-server/roadrunner/releases/download/v2023.3.8/roadrunner-2023.3.8-linux-amd64 -o /usr/local/bin/rr \
     && chmod +x /usr/local/bin/rr
 
-# Verify basic commands work
-RUN which php && which composer && php -v && composer --version
-
 # First copy only composer files to leverage Docker cache
 COPY composer.json composer.lock ./
 
