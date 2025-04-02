@@ -1,7 +1,16 @@
-# Use PHP 8.1 CLI as the base image
+### This Dockerfile is safer, smaller and more efficient.
+### Uses multi-stage build – reduces image size
+### Runs as a non-root user – improves security
+### Installs only necessary dependencies – avoids unnecessary bloat
+### Proper RoadRunner setup
+
+
+# =========================
+# STAGE 1: Base (system dependencies + PHP)
+# =========================
 FROM php:8.1-cli AS base
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
 # Install system dependencies and PHP extensions
@@ -28,49 +37,46 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer properly with PATH setup
-ENV PATH="/usr/bin:${PATH}"
+# Add Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-RUN composer --version
 
-# Install RoadRunner
+# =========================
+# STAGE 2: Builder (install dependencies + RoadRunner)
+# =========================
+FROM base AS builder
+
+# Install PHP dependencies
+COPY composer.json composer.lock ./
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --ignore-platform-reqs --no-scripts
+
+# Download and install RoadRunner
 RUN curl -sSL https://github.com/roadrunner-server/roadrunner/releases/download/v2023.3.8/roadrunner-2023.3.8-linux-amd64 -o /usr/local/bin/rr \
     && chmod +x /usr/local/bin/rr
 
-# Verify basic commands work
-RUN which php && which composer && php -v && composer --version
-
-# First copy only composer files to leverage Docker cache
-COPY composer.json composer.lock ./
-
-# Install dependencies with multiple fallbacks
-RUN { \
-    composer clear-cache && \
-    COMPOSER_MEMORY_LIMIT=-1 composer install \
-        --no-dev \
-        --optimize-autoloader \
-        --no-interaction \
-        --no-progress \
-        --ignore-platform-reqs \
-        --prefer-dist \
-        -vvv || \
-    { \
-        echo "First attempt failed, trying without lock file..." && \
-        rm -f composer.lock && \
-        COMPOSER_MEMORY_LIMIT=-1 composer install \
-            --no-dev \
-            --optimize-autoloader \
-            --no-interaction \
-            --no-progress \
-            --ignore-platform-reqs \
-            --prefer-dist \
-            -vvv; \
-    }; \
-}
-
-# Copy the rest of application files
+# Copy application source code
 COPY . .
 
+# =========================
+# STAGE 3: Final (production)
+# =========================
+FROM base AS final
+
+# Set working directory
+WORKDIR /app
+
+# Create non-root user
+RUN adduser --disabled-password --gecos "" appuser \
+    && chown -R appuser:appuser /app
+
+# Copy application files from builder stage
+COPY --from=builder /app /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose application port
 EXPOSE 8080
 
+# Start RoadRunner
 CMD ["/usr/local/bin/rr", "serve"]
