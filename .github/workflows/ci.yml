@@ -28,7 +28,7 @@ jobs:
           php-version: 8.1
 
       - name: Install dependencies
-        run: composer install --no-dev --optimize-autoloader --no-scripts
+        run: composer install --optimize-autoloader
 
       - name: Run static analysis
         run: composer stan
