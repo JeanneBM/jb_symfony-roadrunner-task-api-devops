@@ -32,13 +32,22 @@
 - **RoadRunner**:
   - Install RoadRunner (v2023.3.8)
   - Set as the application server (instead of PHP-FPM).
-- **Composer**: Install dependencies (`--no-dev --optimize-autoloader`).
+  - Launched with the rr serve command on port 8080.
+- **Composer**: 
+  - Dependency installation from composer.json and composer.lock.
+  - Uses flags: --no-dev (skips development dependencies) and --optimize-autoloader (optimizes the autoloader for better production performance).
 - **Security Enhancements**:
-  - Remove unnecessary packages (`apt-get clean`).
-  - Use fallbacks when installing Composer.
+  - Removal of unnecessary packages: apt-get clean and deletion of /var/lib/apt/lists/* to reduce image size.
+  - Running as a non-root user (appuser), minimizing risks in case of a security breach.
+  - No explicit Composer fallback mechanism in this case, but the installation is stable due to copying from the official image.
 - **Ports**: Expose port `8080` as per `docker-compose.yaml`.
 
-✅ **Compliance**: The Dockerfile correctly containerizes the application with RoadRunner instead of PHP-FPM, using optimization and best practices.
+✅ **Compliance**: The Dockerfile correctly containerizes the application using RoadRunner instead of PHP-FPM, adhering to optimization and best practices, such as:
+
+    - Multi-stage build for a smaller image size.
+    - Minimization of dependencies and cleanup after installation.
+    - Enhanced security through the use of a non-root user.
+
 
 ---
 
