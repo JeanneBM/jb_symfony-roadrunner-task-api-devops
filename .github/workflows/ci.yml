@@ -15,6 +15,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # Cache vendor directory to speed up dependency installation
+      - name: Cache Symfony vendor directory
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: symfony-vendor-${{ hashFiles('composer.lock') }}
+          restore-keys: symfony-vendor-
+
       # Cache Composer dependencies
       - name: Cache Composer dependencies
         uses: actions/cache@v3
@@ -31,6 +39,10 @@ jobs:
       # Install dependencies (with dev for tests)
       - name: Install dependencies
         run: composer install --optimize-autoloader
+
+      # Verify that Baldinof RoadRunner is installed correctly
+      - name: Check installed packages
+        run: composer show | grep baldinof || composer require baldinof/roadrunner-bundle
 
       - name: Run static analysis
         run: composer stan
@@ -62,3 +74,4 @@ jobs:
       - name: Run containerized tests
         run: |
           docker run --rm task-api composer test
+
