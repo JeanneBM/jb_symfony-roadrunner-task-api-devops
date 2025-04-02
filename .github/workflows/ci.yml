@@ -15,20 +15,26 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.1
 
       - name: Install dependencies
-        run: composer install --no-dev --optimize-autoloader
+        run: composer install --no-dev --optimize-autoloader --no-scripts
 
       - name: Run static analysis
         run: composer stan
 
       - name: Run tests
         run: composer test
-
 
   docker:
     runs-on: ubuntu-latest
@@ -37,7 +43,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      # Cache Docker layers
       - name: Cache Docker layers
         uses: actions/cache@v3
         with:
@@ -50,8 +55,3 @@ jobs:
           docker build --cache-from=type=local,src=/tmp/.buildx-cache \
                        --cache-to=type=local,dest=/tmp/.buildx-cache \
                        -t task-api .
-
-      - name: Run containerized tests
-        run: |
-          docker run --rm task-api composer test
-
