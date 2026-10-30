@@ -85,3 +85,7 @@ The pipeline runs on:
 3. Caching dependencies in CI.
 
 ---
+
+## Local secrets
+
+The committed `.env` contains public development defaults only. Generate a NEW random `APP_SECRET` and a unique PostgreSQL password locally; store overrides in ignored `.env.local` or export them from your shell. Compose requires `APP_SECRET` and `POSTGRES_PASSWORD`; provide the matching `DATABASE_URL` as well. For Compose, load your local overrides with `docker compose --env-file .env.local up --build`. Never commit that file. Treat any previously committed secret used in a real deployment as compromised and rotate it. Changing an environment file does not rotate an existing PostgreSQL user's password. Old Git commits remain a separate history-cleanup task.
